@@ -92,7 +92,7 @@ public final class SpawnLogReconstructor implements MessageInputStream<SpawnExec
             .setRemotable(entry.getRemotable())
             .setCacheable(entry.getCacheable())
             .setRemoteCacheable(entry.getRemoteCacheable())
-            .setTimeoutMillis(entry.getTimeoutMillis())
+            .setTimeoutMillis(entry.getTimeoutMillis());
 
     if (entry.hasMetrics()) {
       builder.setMetrics(entry.getMetrics());
