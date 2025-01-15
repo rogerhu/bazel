@@ -24,11 +24,15 @@ import java.io.OutputStream;
 /** Creates a MessageOutputStream from an OutputStream. */
 public class MessageOutputStreamWrapper {
 
-  private MessageOutputStreamWrapper() {}
+  private MessageOutputStreamWrapper() {
+  }
 
-  /** Writes the messages in length-delimited protobuf wire format. */
+  /**
+   * Writes the messages in length-delimited protobuf wire format.
+   */
   public static class BinaryOutputStreamWrapper<T extends Message>
       implements MessageOutputStream<T> {
+
     private final OutputStream stream;
 
     public BinaryOutputStreamWrapper(OutputStream stream) {
@@ -47,8 +51,11 @@ public class MessageOutputStreamWrapper {
     }
   }
 
-  /** Writes the messages in concatenated JSON text format. */
+  /**
+   * Writes the messages in concatenated JSON text format.
+   */
   public static class JsonOutputStreamWrapper<T extends Message> implements MessageOutputStream<T> {
+
     private static final JsonFormat.Printer PRINTER =
         JsonFormat.printer().includingDefaultValueFields();
 
@@ -69,4 +76,42 @@ public class MessageOutputStreamWrapper {
       stream.close();
     }
   }
+
+  public static class JsonDelimitedOutputStreamWrapper<T extends Message> implements MessageOutputStream<T> {
+    private static final JsonFormat.Printer PRINTER =
+        JsonFormat.printer().includingDefaultValueFields();
+
+    private boolean firstObject = true;
+    private final OutputStream stream;
+
+    public JsonDelimitedOutputStreamWrapper(OutputStream stream) {
+      this.stream = checkNotNull(stream);
+    }
+
+    @Override
+    public void write(T m) throws IOException {
+      checkNotNull(m);
+      if (!firstObject) {
+        // Emit a comma before every object except the first
+        this.stream.write(",".getBytes());
+      }
+      firstObject = false;
+
+      stream.write(PRINTER.print(m).getBytes(UTF_8));
+    }
+
+    public void startArray() throws IOException {
+      this.stream.write("[".getBytes());
+    }
+
+    public void endArray() throws IOException {
+      this.stream.write("]".getBytes());
+    }
+
+    @Override
+    public void close() throws IOException {
+      stream.close();
+    }
+  }
+
 }

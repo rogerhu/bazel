@@ -22,6 +22,7 @@ import com.google.devtools.build.lib.util.io.MessageInputStreamWrapper.BinaryInp
 import com.google.devtools.build.lib.util.io.MessageInputStreamWrapper.JsonInputStreamWrapper;
 import com.google.devtools.build.lib.util.io.MessageOutputStream;
 import com.google.devtools.build.lib.util.io.MessageOutputStreamWrapper.BinaryOutputStreamWrapper;
+import com.google.devtools.build.lib.util.io.MessageOutputStreamWrapper.JsonDelimitedOutputStreamWrapper;
 import com.google.devtools.build.lib.util.io.MessageOutputStreamWrapper.JsonOutputStreamWrapper;
 import com.google.devtools.common.options.OptionsParser;
 import java.io.IOException;
@@ -54,7 +55,7 @@ final class ExecLogConverter {
       case BINARY:
         return new BinaryOutputStreamWrapper<>(out);
       case JSON:
-        return new JsonOutputStreamWrapper<>(out);
+        return new JsonDelimitedOutputStreamWrapper<>(out);
       case COMPACT:
         // unsupported
     }
@@ -83,9 +84,12 @@ final class ExecLogConverter {
         StableSort.stableSort(in, out);
       } else {
         SpawnExec ex;
+
+        ((JsonDelimitedOutputStreamWrapper) out).startArray();
         while ((ex = in.read()) != null) {
           out.write(ex);
         }
+        ((JsonDelimitedOutputStreamWrapper) out).endArray();
       }
     }
   }
